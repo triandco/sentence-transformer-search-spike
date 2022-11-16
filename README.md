@@ -78,7 +78,9 @@ suffering to zero to flourishing
 * doc[1] (Score: 14.7422)
 
 ## Paragraph search in Capital and Taste podcast
-### Search for "3 principles" - ❌ fail 
+Document is split by new line characters which indicate a new paragraph. Each paragraph receive its own embedding which is used to compare against embedding of a query 
+
+### Query for "3 principles" - ❌ fail 
 Found 5
 ```
 And Will:       
@@ -101,7 +103,7 @@ against in the first conversation we had. While some minor details have changed,
 And Devin:
  (Score: 50.6368)
 ```
-### Search for "3 approaches"  - ✅ pass
+### Query for "3 approaches"  - ✅ pass
 Found 5
 ```
 Capital’s answer centers on three interlinked strategies:   
@@ -125,7 +127,7 @@ and Sarah Chase have been making from day one, when it seemed crazy. But the ins
  (Score: 50.2830)
 
 
-### Search for 'younger generation'  - ✅ pass
+### Query for 'younger generation' - ✅ pass
 Found 5
 ```
 The idea is simple but powerful: if you can acquire the youngest users, retain them as they grow up, and continue to attract the new cohorts of young users, you will win over time.
@@ -146,7 +148,8 @@ Leverage the Compounding Power of Young Users
 Jordi is the kind of founder I call a Worldbuilder. Worldbuilders all have a few things in common:
  (Score: 42.6172)
 
-### Search for 'extending its taste' return satisfactory result:
+
+### Query for 'extending its taste' - ✅ pass
 Found 5
 ```
 Extend Excellent Taste to the Product Itself
