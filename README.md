@@ -28,8 +28,57 @@ pip install sentence-transformer
 
 # Outcome
 
-## Paragraph search
-### Search for "3 principles" returns somewhat close results
+## Content search in Sam Harris podcast
+### Query 1 - ✅ pass 
+Sam talks about a scale of suffering to flourishing. His guest has seems to evaluate things from suffering to zero, Sam Harris seems to evaluate things from suffering to zero to flourishing.
+* doc[0] (Score: 46.2354)
+* doc[2] (Score: 31.1247)
+* doc[1] (Score: 22.5042)
+
+### Query 2 - ✅ pass 
+His guest has seems to evaluate things from suffering to zero, Sam Harris seems to evaluate things from suffering to zero to flourishing.
+* doc[0](Score: 38.9579)
+* doc[1](Score: 35.4988)
+* doc[2] (Score: 26.6808)
+
+### Query 3 - ❌ fail 
+Oh yeah, this reminds me of some Sammy podcast where he speaks to someone who has the view that life is a scale like: -1 —— 0 as in there’s suffering or there’s not. Where as Sammy was viewing more like: -1 —— 0 —— +1 where there’s flourishing to be had.
+* doc[1](Score: 52.1846)
+* doc[0] (Score: 24.9433)
+* doc[2] (Score: 24.5990)
+
+### Query 4 - ✅ pass 
+Suffering scale
+* doc[0] (Score: 58.3829)
+* doc[2] (Score: 24.4793)
+* doc[1] (Score: 2.0260)
+
+### Query 5 - ✅ pass
+Sam Harris suffering scale
+* doc[0](Score: 31.0392)
+* doc[1](Score: 17.4912)
+* doc[2] (Score: 17.3035)
+
+### Query 6 - ✅ pass
+suffering flourishing scale
+* doc[0] (Score: 51.7766)
+* doc[1] (Score: 45.4267)
+* doc[2] (Score: 16.7268)
+
+### Query 7 - ✅ pass
+guest evaluates things from suffering to zero, Sam evaluates things from suffering to zero to flourishing
+* doc[0] (Score: 55.6910)
+* doc[1] (Score: 25.8012)
+* doc[2] (Score: 23.3835)
+
+### Query 8 - ✅ pass
+suffering to zero to flourishing
+* doc[0] (Score: 95.5005)
+* doc[2] (Score: 39.1806)
+* doc[1] (Score: 14.7422)
+
+## Paragraph search in Capital and Taste podcast
+### Search for "3 principles" - ❌ fail 
 Found 5
 ```
 And Will:       
@@ -52,7 +101,7 @@ against in the first conversation we had. While some minor details have changed,
 And Devin:
  (Score: 50.6368)
 ```
-### Search for "3 approaches" returns a satisfactory result
+### Search for "3 approaches"  - ✅ pass
 Found 5
 ```
 Capital’s answer centers on three interlinked strategies:   
@@ -76,8 +125,7 @@ and Sarah Chase have been making from day one, when it seemed crazy. But the ins
  (Score: 50.2830)
 
 
-
-### Search for 'younger generation' returns satisfactory result
+### Search for 'younger generation'  - ✅ pass
 Found 5
 ```
 The idea is simple but powerful: if you can acquire the youngest users, retain them as they grow up, and continue to attract the new cohorts of young users, you will win over time.
