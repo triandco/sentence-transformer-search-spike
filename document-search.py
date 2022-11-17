@@ -1,6 +1,5 @@
-from sentence_transformers import SentenceTransformer, util
-from libs import all_lines, get_files
-model = SentenceTransformer('msmarco-distilbert-base-tas-b')
+from libs import get_files, search
+from embeddings import AbstractEmbeddingEncoder, LongSentence512, Mean, AMaxParagraph
 
 test_cases = [
   {
@@ -39,28 +38,23 @@ test_cases = [
     'expect': 'web3-usecase-of-the-future'
   }
 ]
-  
-def search(query, corpus):
-  query_embedding = model.encode(query, convert_to_tensor=True)
-  hits = util.semantic_search(query_embedding, corpus, top_k=3, score_function=util.dot_score)
-  return hits[0]
 
-if __name__=='__main__':
+def run_test(strategy: AbstractEmbeddingEncoder):  
   directory_path = 'doc/not-boring-podcast'
   files = get_files(directory_path)
-  corpus = [ "\n".join(all_lines(doc)) for doc in files]
-  corpus_embedding = model.encode(corpus, convert_to_tensor=True)
-  
+  corpus_embedding = [ strategy.document(file_path) for file_path in files]
+
   success_count = 0
   for c in test_cases:
-    result = search(c['query'], corpus_embedding)
+    query_embedding = strategy.query(c['query'])
+    result = search(query_embedding, corpus_embedding)
 
     # if verbose_log:
     #   for hit in result:
     #     print('*', files[hit['corpus_id']], "(Score: {:.4f})".format(hit['score']))
     first_match = files[result[0]['corpus_id']]
     success = c['expect'] in first_match
-    if not success:
+    if success:
       success_count += 1
 
     print('✅' if success else '❌', "Case: {:s}".format(c['title']))
@@ -68,5 +62,30 @@ if __name__=='__main__':
     print('Expected first match: {:s}. Found {:s}'.format(c['expect'], first_match.replace('doc/not-boring-podcast', '')) )
     print("-------------------------------------------------")
 
-  success_rate = success_count / len(test_cases) * 100
-  print("Success rate: {:10.2f}%".format(success_rate), '👍' if success_rate >= 70 else '👎',)
+  return success_count / len(test_cases) * 100
+  
+
+
+if __name__=='__main__':
+  strategies = [
+    # {
+    #   'name': 'Long sentence',
+    #   'implementation':LongSentence512
+    # },
+    {
+      'name': 'Mean',
+      'implementation': Mean
+    },
+    # {
+    #   'name': 'Numpy Amax - paragraph',
+    #   'implementation': AMaxParagraph
+    # },
+    # {
+    #   'name': 'Numpy Sum Concatted with Amax - Sentence',
+    #   'implementation': SumAMaxSentence
+    # }
+  ]
+
+  for strategy in strategies:
+    success_rate = run_test(strategy['implementation'])
+    print(strategy['name'],"{:10.2f}%".format(success_rate), '👍' if success_rate >= 70 else '👎',)
