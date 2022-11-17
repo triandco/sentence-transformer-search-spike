@@ -1,9 +1,9 @@
 from sentence_transformers import SentenceTransformer, util
-from libs import read_file
+from libs import all_lines
 model = SentenceTransformer('msmarco-distilbert-base-tas-b')
 
 
-lines = read_file('doc/sammy.txt')
+lines = all_lines('doc/sammy.txt')
 query_embedding = model.encode('suffering to zero to flourishing', convert_to_tensor=True)
 passages_embedding = model.encode(lines, convert_to_tensor=True)
 
