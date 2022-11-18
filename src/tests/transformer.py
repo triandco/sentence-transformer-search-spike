@@ -1,12 +1,9 @@
 from sentence_transformers import SentenceTransformer
 import numpy
+from libs import expect
+
 model = SentenceTransformer('msmarco-distilbert-base-tas-b')
 
-def quickTick(success: bool) -> str:
-  return '✅' if success else '❌'
-
-def expect(condition, message):
-  print(quickTick(condition), message)
 
 def verify_encode_batch_behaviour():
   batch = model.encode(["hello world", "hello world"])

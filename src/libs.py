@@ -9,6 +9,9 @@ def all_lines(path):
     content = f.readlines()
   return content
 
+def get_content(path):
+  return ''.join(all_lines(path))
+
 def get_files(path):
   return [ join(path, f) for f in listdir(path) if isfile(join(path, f))]
 
@@ -20,3 +23,11 @@ def search(query, corpus):
 
 def flatten(l):
   return  [item for sublist in l for item in sublist]
+
+
+def quickTick(success: bool) -> str:
+  return '✅' if success else '❌'
+
+
+def expect(condition, message):
+  print(quickTick(condition), message)
