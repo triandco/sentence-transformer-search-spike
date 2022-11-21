@@ -1,18 +1,11 @@
 from sentence_transformers import SentenceTransformer, util
-model = SentenceTransformer('msmarco-distilroberta-base-v2')
-
-def read_file(path):
-  content = ''
-  # ignore emoji
-  with open(path, encoding='utf-8', errors='ignore') as f:
-    content = f.readlines()
-  return content
+from libs import all_lines
+model = SentenceTransformer('msmarco-distilbert-base-tas-b')
 
 
-lines = read_file('doc/sammy.txt')
+lines = all_lines('doc/sammy.txt')
 query_embedding = model.encode('suffering to zero to flourishing', convert_to_tensor=True)
 passages_embedding = model.encode(lines, convert_to_tensor=True)
-
 
 print("build completed.")
 hits = util.semantic_search(query_embedding, passages_embedding, top_k=3, score_function=util.dot_score)
