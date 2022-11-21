@@ -31,3 +31,8 @@ def quickTick(success: bool) -> str:
 
 def expect(condition, message):
   print(quickTick(condition), message)
+
+
+def unzip(target: 'list[tuple[any, any]]'):
+  return [[i for i, j in target],
+       [j for i, j in target]]

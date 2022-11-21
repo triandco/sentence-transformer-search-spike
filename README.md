@@ -1,6 +1,8 @@
 # Introduction
-This project attempts to test [sentence-transformers](https://www.sbert.net) as a means to generate search indexes for paragraphs inside documents as well as large documents.
-
+This project attempts to test a couple of algorithms as a means to generate search indexes for paragraphs inside documents as well as large documents.
+* [sentence-transformers](https://www.sbert.net)
+* document-embeddings using sentence embeddings (In this repository)
+* [rank_bm25](https://pypi.org/project/rank-bm25/)
 
 # Requirements
 * Python 3.7.9

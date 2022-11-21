@@ -1,7 +1,10 @@
-from ..libs import get_content, get_files, search, quickTick
+from ..libs import get_content, get_files, search, quickTick, unzip
+from ..types import TestCase, RankResult
 from ..embeddings import AbstractEmbeddingEncoder, Default, MeanAMax
+import torch
+from rank_bm25 import BM25L, BM25Plus
 
-test_cases = [
+test_cases: 'list[TestCase]' = [
   {
     'title': "Single point",
     'query': "3 approaches of Capital",
@@ -45,37 +48,83 @@ test_cases = [
   }
 ]
 
-def run_test(documents: 'list[str]', strategy: AbstractEmbeddingEncoder, verbose_log=True):  
-  
-  document_embeddings = [ strategy.document(document) for document in documents]
+def embeddings_rank(documents: 'list[tuple[str, str]]', strategy: AbstractEmbeddingEncoder, verbose_log=True) -> 'list[RankResult]':  
+  titles, docs = unzip(documents)
+  document_embeddings = [ strategy.document(document) for document in docs]
+  outcome: 'list[RankResult]' = []
 
-  success_count = 0
   for c in test_cases:
     query_embedding = strategy.query(c['query'])
-    result = search(query_embedding, document_embeddings)
-    
-    matches = list(map(lambda x: files[x['corpus_id']], result))
-    success = c['expect'] in matches[0]
-    if success:
-      success_count += 1
-    
-    if verbose_log:
-      print(quickTick(success), "Case: {:s}".format(c['title']))
-      print("Query: '{:s}'".format(c['query']))
-      print('Match found', matches)
-      print('Expected first match: {:s}.'.format(c['expect']) )
-      print("-------------------------------------------------")
+    scores = [strategy.score(query_embedding, doc_embeddings) for doc_embeddings in document_embeddings]
+    outcome.append({
+      'case': c,
+      'result': sorted(list(zip(titles, scores)), key=lambda x: x[1], reverse=True)
+    })
 
-  return success_count / len(test_cases) * 100
+  return outcome
   
+
+def bm25_rank(documents: 'list[tuple[str,str]]', strategy):
+  titles, docs = unzip(documents)
+  bm25l = strategy([document.split(' ') for document in docs])
+  
+  outcome: 'list[RankResult]' = []
+  for c in test_cases:
+    query = c['query'].split()
+    scores = bm25l.get_scores(query)
+    outcome.append({
+      'case': c,
+      'result': sorted(list(zip(titles, scores)), key=lambda x:x[1], reverse=True)
+    }) 
+  
+  return outcome
+
+
+def tensor_to_score(tensor: torch.Tensor) -> float: 
+  return tensor.cuda('cuda:0')[0].tolist()[0]
+
+
+def test_embedding_rank(documents):
+  embeddings_strategies = [ Default, MeanAMax ]
+  for strategy in embeddings_strategies:
+    print('Strategy ', strategy.__name__)
+    success_count = 0
+    for result in embeddings_rank(documents, strategy):
+      success = result['case']['expect'] in result['result'][0][0]
+      if success:
+        success_count += 1
+      print(' ', quickTick(success), 'Query: ', result['case']['query'])
+      print('  Expected: ', result['case']['expect'])
+      for doc, score in result['result']:
+        print('   ', tensor_to_score(score), doc.replace(directory_path, '').replace('.txt',''))
+      print(' ')
+    print('👉  Success Rate {:s} {:d}/{:d}'.format(strategy.__name__, success_count, len(test_cases)))
+
+
+def test_bm25_rank(documents):
+  bm_strategies = [ BM25L, BM25Plus ]
+
+  for strategy in bm_strategies:
+    print('Strategy ', strategy.__name__)
+    success_count = 0
+    for result in bm25_rank(documents, strategy):
+      success = result['case']['expect'] in result['result'][0][0]
+      if success:
+        success_count += 1
+      print(' ', quickTick(success), 'Query: ', result['case']['query'])
+      print('  Expect: ', result['case']['expect'])
+      for doc, score in result['result']:
+        print('   ', score, doc.replace(directory_path, '').replace('.txt',''))
+      print(' ')
+    print('👉 Success Rate {:s} {:d}/{:d}'.format(strategy.__name__, success_count, len(test_cases)))
 
 
 if __name__=='__main__':
   directory_path = 'doc/not-boring-podcast'
   files = get_files(directory_path)
-  documents = list(map(get_content, files))
+  documents = list(zip(files, list(map(get_content, files))))
 
-  strategies = [ Default, MeanAMax ]
-
-  for strategy in strategies:
-    run_test(documents, strategy, verbose_log=True)
+  test_bm25_rank(documents)
+  test_embedding_rank(documents)    
+  
+  
