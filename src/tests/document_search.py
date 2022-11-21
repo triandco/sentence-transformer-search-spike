@@ -1,7 +1,9 @@
 from ..libs import get_content, get_files, search, quickTick, unzip
 from ..types import TestCase, RankResult
-from ..embeddings import AbstractEmbeddingEncoder, Default, MeanAMax
+from ..embeddings import AbstractEmbeddingEncoder, SGPTCosine, MeanAMax
+from ..sentence_transformer import SentenceTransformerSpecb
 import torch
+from sentence_transformers import SentenceTransformer
 from rank_bm25 import BM25L, BM25Plus
 
 test_cases: 'list[TestCase]' = [
@@ -12,7 +14,7 @@ test_cases: 'list[TestCase]' = [
   },
   {
     'title': "Exact wording",
-    'query': "Livestream and entertainment",
+    'query': "a controversy when they sold Muslim prayer mats as fun home decor",
     'expect': "shein-the-tik-tok-ecomerce"
   },
   {
@@ -85,9 +87,20 @@ def tensor_to_score(tensor: torch.Tensor) -> float:
 
 
 def test_embedding_rank(documents):
-  embeddings_strategies = [ Default, MeanAMax ]
+  
+  model = SentenceTransformer('msmarco-distilbert-base-tas-b')
+  model2 = SentenceTransformer('sentence-transformers/msmarco-bert-base-dot-v5')
+  model3 = SentenceTransformer('sentence-transformers/msmarco-distilbert-cos-v5')
+  modelSpecb = SentenceTransformerSpecb("Muennighoff/SGPT-125M-weightedmean-msmarco-specb-bitfit")
+
+  embeddings_strategies = [ 
+    MeanAMax(model),
+    MeanAMax(model2),
+    MeanAMax(model3),
+    SGPTCosine(modelSpecb)
+  ]
   for strategy in embeddings_strategies:
-    print('Strategy ', strategy.__name__)
+    print('Strategy ', strategy.__class__.__name__)
     success_count = 0
     for result in embeddings_rank(documents, strategy):
       success = result['case']['expect'] in result['result'][0][0]
@@ -96,9 +109,11 @@ def test_embedding_rank(documents):
       print(' ', quickTick(success), 'Query: ', result['case']['query'])
       print('  Expected: ', result['case']['expect'])
       for doc, score in result['result']:
-        print('   ', tensor_to_score(score), doc.replace(directory_path, '').replace('.txt',''))
+        print('   ', score, doc.replace(directory_path, '').replace('.txt',''))
       print(' ')
-    print('👉  Success Rate {:s} {:d}/{:d}'.format(strategy.__name__, success_count, len(test_cases)))
+    print('👉  Success Rate {:s} {:d}/{:d}'.format(strategy.__class__.__name__, success_count, len(test_cases)))
+    print(' ')
+    print(' ')
 
 
 def test_bm25_rank(documents):
@@ -124,7 +139,7 @@ if __name__=='__main__':
   files = get_files(directory_path)
   documents = list(zip(files, list(map(get_content, files))))
 
-  test_bm25_rank(documents)
+  # test_bm25_rank(documents)
   test_embedding_rank(documents)    
   
   
