@@ -1,10 +1,11 @@
 from ..libs import get_content, get_files, search, quickTick, unzip
 from ..types import TestCase, RankResult
-from ..embeddings import AbstractEmbeddingEncoder, SGPTCosine, MeanAMax
+from ..embeddings import AbstractEmbeddingEncoder, SGPTCosine, MeanAMax, DocumentParagraph
 from ..sentence_transformer import SentenceTransformerSpecb
 import torch
 from sentence_transformers import SentenceTransformer
 from rank_bm25 import BM25L, BM25Plus
+from time import perf_counter
 
 test_cases: 'list[TestCase]' = [
   {
@@ -52,7 +53,11 @@ test_cases: 'list[TestCase]' = [
 
 def embeddings_rank(documents: 'list[tuple[str, str]]', strategy: AbstractEmbeddingEncoder, verbose_log=True) -> 'list[RankResult]':  
   titles, docs = unzip(documents)
+  embedding_generation_start = perf_counter()
   document_embeddings = [ strategy.document(document) for document in docs]
+  embedding_generation_end = perf_counter()
+  if verbose_log:
+    print("⌚ Generation time {:f}s".format(embedding_generation_end - embedding_generation_start))
   outcome: 'list[RankResult]' = []
 
   for c in test_cases:
@@ -89,15 +94,16 @@ def tensor_to_score(tensor: torch.Tensor) -> float:
 def test_embedding_rank(documents):
   
   model = SentenceTransformer('msmarco-distilbert-base-tas-b')
-  model2 = SentenceTransformer('sentence-transformers/msmarco-bert-base-dot-v5')
-  model3 = SentenceTransformer('sentence-transformers/msmarco-distilbert-cos-v5')
-  modelSpecb = SentenceTransformerSpecb("Muennighoff/SGPT-125M-weightedmean-msmarco-specb-bitfit")
+  # model2 = SentenceTransformer('sentence-transformers/msmarco-bert-base-dot-v5')
+  # model3 = SentenceTransformer('sentence-transformers/msmarco-distilbert-cos-v5')
+  # modelSpecb = SentenceTransformerSpecb("Muennighoff/SGPT-125M-weightedmean-msmarco-specb-bitfit")
 
   embeddings_strategies = [ 
     MeanAMax(model),
-    MeanAMax(model2),
-    MeanAMax(model3),
-    SGPTCosine(modelSpecb)
+    # MeanAMax(model2),
+    # MeanAMax(model3),
+    # SGPTCosine(modelSpecb), 
+    DocumentParagraph(model)
   ]
   for strategy in embeddings_strategies:
     print('Strategy ', strategy.__class__.__name__)
@@ -139,7 +145,7 @@ if __name__=='__main__':
   files = get_files(directory_path)
   documents = list(zip(files, list(map(get_content, files))))
 
-  # test_bm25_rank(documents)
-  test_embedding_rank(documents)    
+  test_bm25_rank(documents)
+  test_embedding_rank(documents)  
   
   
