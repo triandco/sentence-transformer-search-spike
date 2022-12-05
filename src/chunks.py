@@ -21,3 +21,11 @@ class Chunkless:
   @staticmethod
   def chunk(document: str) -> 'list[str]':
     return [document]
+
+
+class BlockChunk:
+  @staticmethod
+  def chunk(document:str) -> 'list[str]':
+    paragraphs = document.split('\n')
+    count = 3
+    blocks = ["\n".join(paragraphs[i:i + count]) for i in range(0, len(paragraphs), count)]

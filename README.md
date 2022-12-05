@@ -20,8 +20,9 @@ env/Script/active
 2. Install [Pytorch for your platform](https://pytorch.org/). 
 If you are on Windows and have an NVIDIA graphic card:
 ```powershell
-pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu117
+pip install --no-cache-dir torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu117
 ```
+The --no-cache-dir flag was there to address [a known issue](https://stackoverflow.com/questions/64850321/windows-keeps-crashing-when-trying-to-install-pytorch-via-pip) with this command freezing computer. You might not need it if you have not install pytorch before.
 
 3. Install sentence-transformer
 ```powershell

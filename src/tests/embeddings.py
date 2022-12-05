@@ -1,5 +1,6 @@
 from ..libs import get_content
-from ..embeddings import AbstractEmbeddingEncoder, Default, Mean, AMax, MeanAMax
+from sentence_transformers import SentenceTransformer
+from ..embeddings import AbstractEmbeddingEncoder, Mean, AMax, MeanAMax
 
 def sammy_podcast_excerpts():
   docs = get_content('doc/sammy.txt')
@@ -31,7 +32,13 @@ def get_test_cases():
   ]
 
 def run_test(case):
-  strategies: 'list[AbstractEmbeddingEncoder]' = [Default, Mean, AMax, MeanAMax]
+  model = SentenceTransformer('msmarco-distilbert-base-tas-b')
+
+  strategies: 'list[AbstractEmbeddingEncoder]' = [
+    Mean(model),
+    AMax(model), 
+    MeanAMax(model)
+  ]
   for strategy in strategies:
     document_embeddings = list(map(strategy.document, case['documents']))
     query_embedding = strategy.query(case['query'])
