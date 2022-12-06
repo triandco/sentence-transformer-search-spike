@@ -81,7 +81,7 @@ if __name__=='__main__':
         'sentence-transformers/msmarco-distilbert-cos-v5', 
         'sentence-transformers/msmarco-bert-base-dot-v5'
     ] 
-    varieties = [ 128, 256, 512 ]
+    varieties = [ 512 ]
     for variety in varieties:
       outcome = [ reduce_dimension(model, variety) for model in model_names]
     

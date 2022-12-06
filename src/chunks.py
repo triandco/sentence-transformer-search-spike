@@ -1,4 +1,5 @@
 from .libs import flatten
+import math
 
 class SentenceChunk:
   @staticmethod
@@ -25,6 +26,9 @@ class Chunkless:
 
 class NthChunk:
   @staticmethod
-  def chunk(document:str, count) -> 'list[str]':
-    paragraphs = document.split('\n')
-    return ["\n".join(paragraphs[i:i + count]) for i in range(0, len(paragraphs), count)]
+  def chunk(document:str, count:int) -> 'list[str]':
+    paragraphs = ParagraphChunk.chunk(document)
+    steps = math.ceil(len(paragraphs) / count)
+    return ["\n".join(paragraphs[i:i + steps]) for i in range(0, len(paragraphs), steps)]
+
+

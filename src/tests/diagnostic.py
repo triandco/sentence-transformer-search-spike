@@ -9,6 +9,7 @@ def print_embedding_size(model_name):
   example_embedding = model.encode("In this cat humble opinion, caviar and lobster has become way too extravagant for dinner as oppose to a simple but delightful himono from the far orient.")
   print("Standard embedding length", len(example_embedding))
   embedding_size = example_embedding[0].itemsize * len(example_embedding)
+  print("Single dimension size kb: ", example_embedding[0].itemsize)
   print("Standard embedding size in kb: ", embedding_size / 1000)
 
 

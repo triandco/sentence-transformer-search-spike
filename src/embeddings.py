@@ -12,6 +12,14 @@ class AbstractQueryEncoder():
 
 
 class AbstractEmbeddingStrategy(AbstractQueryEncoder):
+  def __init__(self, model: SentenceTransformer, model_name: str) -> None:
+    super().__init__()
+    self.model = model
+    self.model_name = model_name
+
+  def __str__(self) -> str:
+    return "%s %s" % (self.__class__.__name__, self.model_name)
+
   def document(document:str):
     raise NotImplementedError("trying to call method of an abstract class")
 
@@ -60,10 +68,6 @@ class CosineSimiliarityScore():
 # This strategy treat the entire document as a string of maximum 512 word
 class WholeChunk(DotProductScore, Chunkless, AbstractEmbeddingStrategy, AbstractDocumentEncoder): 
 
-  def __init__(self, model: SentenceTransformer):
-    super().__init__()
-    self.model = model
-
   def document(self, document: str) -> torch.Tensor:
     chunks = WholeChunk.chunk(document)
     embedding = self.model.encode(chunks, convert_to_tensor=True)
@@ -76,10 +80,6 @@ class WholeChunk(DotProductScore, Chunkless, AbstractEmbeddingStrategy, Abstract
 # This strategy treat the entire document as multiple sentence of maximum 512 word
 class Mean(DotProductScore, ParagraphChunk, AbstractEmbeddingStrategy, AbstractDocumentEncoder):
   
-  def __init__(self, model: SentenceTransformer): 
-    super().__init__()
-    self.model = model
-
   def document(self, document: str) -> torch.Tensor:
     chunks = Mean.chunk(document)
     embeddings = self.model.encode(chunks)
@@ -91,10 +91,6 @@ class Mean(DotProductScore, ParagraphChunk, AbstractEmbeddingStrategy, AbstractD
 
 
 class AMax(DotProductScore, ParagraphChunk, AbstractEmbeddingStrategy, AbstractDocumentEncoder):
-  def __init__(self, model: SentenceTransformer):
-    super().__init__()
-    self.model = model
-
 
   def document(self, document: str) -> torch.Tensor:
     chunks = AMax.chunk(document)
@@ -107,14 +103,10 @@ class AMax(DotProductScore, ParagraphChunk, AbstractEmbeddingStrategy, AbstractD
     return self.model.encode(query, convert_to_tensor=True)
 
 #https://dev.to/mage_ai/how-to-build-a-search-engine-with-word-embeddings-56jd
-class MeanAMax(ParagraphChunk, DotProductScore, AbstractEmbeddingStrategy, AbstractDocumentEncoder):
-  def __init__(self, model: SentenceTransformer):
-    super().__init__()
-    self.model = model
-
+class WholeDocument(ParagraphChunk, DotProductScore, AbstractEmbeddingStrategy, AbstractDocumentEncoder):
 
   def document(self, document: str) -> torch.Tensor:
-    chunks = MeanAMax.chunk(document)
+    chunks = WholeDocument.chunk(document)
     embeddings = self.model.encode(chunks)
     mean = numpy.mean(embeddings, axis=0)
     amax = numpy.amax(embeddings, axis=0)
@@ -131,9 +123,8 @@ class MeanAMax(ParagraphChunk, DotProductScore, AbstractEmbeddingStrategy, Abstr
 
 
 class NthBlock(NthChunk, AbstractEmbeddingStrategy, AbstractDocumentEncoder):
-  def __init__(self, model: SentenceTransformer, count: int):
-    super().__init__()
-    self.model = model
+  def __init__(self, model: SentenceTransformer, model_name:str, count: int):
+    super().__init__(model, model_name)
     self.count = count
 
   def document(self, document: str) -> 'list[torch.Tensor]':
@@ -156,20 +147,22 @@ class NthBlock(NthChunk, AbstractEmbeddingStrategy, AbstractDocumentEncoder):
     concatted = numpy.concatenate([embedding, embedding])
     return torch.tensor(concatted, device='cuda:0')
 
+
 class NthBlockDot(DotProductCollectionScore, NthBlock):
-  def __init__(self, model: SentenceTransformer, count: int):
-    super().__init__(model, count)
+  def __str__(self) -> str:
+    return "NthBlockDot with %d block using %s" % (self.count, self.model_name)
 
 
 class NthBlockCosine(CosineSimilarityCollectionScore, NthBlock):
-  def __init__(self, model: SentenceTransformer, count: int):
-    super().__init__(model, count)
+  def __str__(self) -> str:
+    return "NthBlockCosine with %d block using %s" % (self.count, self.model_name)
 
 
 class SGPTCosine(ParagraphChunk, CosineSimiliarityScore, AbstractEmbeddingStrategy, AbstractDocumentEncoder): 
-  def __init__(self, model: SentenceTransformerSpecb):
+  def __init__(self, model: SentenceTransformerSpecb, model_name:str):
     super().__init__()
     self.model = model
+    self.model_name = model_name
 
   
   def document(self, document: str) -> torch.Tensor:
@@ -189,14 +182,9 @@ class SGPTCosine(ParagraphChunk, CosineSimiliarityScore, AbstractEmbeddingStrate
     return torch.tensor(concatted, device='cuda:0')
 
 
-class DocumentParagraph(ParagraphChunk, DotProductCollectionScore, AbstractEmbeddingStrategy, AbstractCollectionEncoder):
-  def __init__(self, model):
-    super().__init__()
-    self.model = model
-
-
+class ParagraphBlock(ParagraphChunk, DotProductCollectionScore, AbstractEmbeddingStrategy, AbstractCollectionEncoder):
   def document(self, document:str) -> 'list[torch.Tensor]':
-    chunks = DocumentParagraph.chunk(document)
+    chunks = ParagraphBlock.chunk(document)
     return self.model.encode(chunks)
 
 
