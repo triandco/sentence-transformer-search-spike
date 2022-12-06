@@ -1,6 +1,6 @@
 from ..libs import get_content, get_files, search, quickTick, unzip
-from ..types import TestCase, RankResult
-from ..embeddings import AbstractEmbeddingEncoder, SGPTCosine, MeanAMax, DocumentParagraph
+from ..custom_types import TestCase, RankResult
+from ..embeddings import AbstractEmbeddingStrategy, Mean, AMax, MeanAMax, DocumentParagraph, NthBlockDot, NthBlockCosine
 from ..sentence_transformer import SentenceTransformerSpecb
 import torch
 from sentence_transformers import SentenceTransformer
@@ -51,7 +51,7 @@ test_cases: 'list[TestCase]' = [
   }
 ]
 
-def embeddings_rank(documents: 'list[tuple[str, str]]', strategy: AbstractEmbeddingEncoder, verbose_log=True) -> 'list[RankResult]':  
+def embeddings_rank(documents: 'list[tuple[str, str]]', strategy: AbstractEmbeddingStrategy, verbose_log=True) -> 'list[RankResult]':  
   titles, docs = unzip(documents)
   embedding_generation_start = perf_counter()
   document_embeddings = [ strategy.document(document) for document in docs]
@@ -91,20 +91,25 @@ def tensor_to_score(tensor: torch.Tensor) -> float:
   return tensor.cuda('cuda:0')[0].tolist()[0]
 
 
-def test_embedding_rank(documents):
+def test_embedding_rank(documents, verbose=True):
   
-  model = SentenceTransformer('msmarco-distilbert-base-tas-b')
+  modelDot256 = SentenceTransformer('models/reduced-256/msmarco-bert-base-dot-v5')
+  # model128 = SentenceTransformer('models/reduced-128/msmarco-distilbert-cos-v5')
+  # model256 = SentenceTransformer('models/reduced-256/msmarco-distilbert-cos-v5')
+  # model512 = SentenceTransformer('models/reduced-512/msmarco-distilbert-cos-v5')
   # model2 = SentenceTransformer('sentence-transformers/msmarco-bert-base-dot-v5')
   # model3 = SentenceTransformer('sentence-transformers/msmarco-distilbert-cos-v5')
   # modelSpecb = SentenceTransformerSpecb("Muennighoff/SGPT-125M-weightedmean-msmarco-specb-bitfit")
 
   embeddings_strategies = [ 
-    MeanAMax(model),
-    # MeanAMax(model2),
-    # MeanAMax(model3),
-    # SGPTCosine(modelSpecb), 
-    DocumentParagraph(model)
+    # MeanAMax(model),
+    NthBlockDot(modelDot256, 3),
+    # AMax(model),
+    # Mean(model),
+    # SGPTCosine(modelSpecb),  
+    # DocumentParagraph(model)
   ]
+
   for strategy in embeddings_strategies:
     print('Strategy ', strategy.__class__.__name__)
     success_count = 0
@@ -114,9 +119,10 @@ def test_embedding_rank(documents):
         success_count += 1
       print(' ', quickTick(success), 'Query: ', result['case']['query'])
       print('  Expected: ', result['case']['expect'])
-      for doc, score in result['result']:
-        print('   ', score, doc.replace(directory_path, '').replace('.txt',''))
-      print(' ')
+      if verbose:
+        for doc, score in result['result']:
+          print('   ', score, doc.replace(directory_path, '').replace('.txt',''))
+        print(' ')
     print('👉  Success Rate {:s} {:d}/{:d}'.format(strategy.__class__.__name__, success_count, len(test_cases)))
     print(' ')
     print(' ')
@@ -145,7 +151,7 @@ if __name__=='__main__':
   files = get_files(directory_path)
   documents = list(zip(files, list(map(get_content, files))))
 
-  test_bm25_rank(documents)
-  test_embedding_rank(documents)  
+  # test_bm25_rank(documents)
+  test_embedding_rank(documents, False)  
   
   

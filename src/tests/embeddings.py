@@ -1,6 +1,6 @@
 from ..libs import get_content
 from sentence_transformers import SentenceTransformer
-from ..embeddings import AbstractEmbeddingEncoder, Mean, AMax, MeanAMax
+from ..embeddings import EmbeddingStrategy, AMax, MeanAMax, Mean
 
 def sammy_podcast_excerpts():
   docs = get_content('doc/sammy.txt')
@@ -34,16 +34,16 @@ def get_test_cases():
 def run_test(case):
   model = SentenceTransformer('msmarco-distilbert-base-tas-b')
 
-  strategies: 'list[AbstractEmbeddingEncoder]' = [
-    Mean(model),
+  strategies: 'list[EmbeddingStrategy]' = [
     AMax(model), 
+    Mean(model), 
     MeanAMax(model)
   ]
   for strategy in strategies:
     document_embeddings = list(map(strategy.document, case['documents']))
     query_embedding = strategy.query(case['query'])
     scores = [ strategy.score(query_embedding, embedding).cuda('cuda:0')[0].tolist() for embedding in document_embeddings ]
-    print('Strategy', strategy.__name__)
+    print('Strategy', strategy.__class__.__name__)
     for (index, score) in enumerate(scores):
       print('doc[{:d}]'.format(index), score)
     print('----------')
