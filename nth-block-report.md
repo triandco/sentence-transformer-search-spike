@@ -20,6 +20,22 @@ Dimensions of the embedding is reduced using [🤗 sentence embeddings guide](ht
 | 768 | 1 | 4/8 | 18.176465s | 6.144 |
 | 768 | 2 | 3/8 | 15.738416s | 12.288 |
 
+# msmarco-bert-base-dot-v5 with normalised embeddings and dot product score 
+| Dimensions | Number of blocks | Tests passed | Doc Embedding generation time | Embedding size kb |
+|------------|------------------|--------------|-------------------------------|-------------------|
+| 128 | 2 | 1/8 | 15.930445s|
+| 128 | 3 | 1/8 | 18.089389s|
+| 128 | 6 | 2/8 | 22.713149s|
+| 256 | 2 | 1/8 | 15.927219s|
+| 256 | 3 | 1/8 | 18.098946s|
+| 256 | 4 | 2/8 | 19.972480s|
+| 384 | 2 | 2/8 | 17.546334s|
+| 384 | 3 | 1/8 | 20.748567s|
+| 512 | 1 | 1/8 | 33.887508s|
+| 512 | 2 | 1/8 | 35.564391s|
+| 768 | 1 | 1/8 | 17.912151s|
+| 768 | 2 | 1/8 | 15.706951s|
+
 
 # msmarco-distilbert-base-tas-b with dot product score
 | Dimensions | Number of blocks | Tests passed | Doc Embedding generation time | Embedding size kb |
@@ -36,6 +52,23 @@ Dimensions of the embedding is reduced using [🤗 sentence embeddings guide](ht
 | 512 | 2 | 3/8 | 14.385524s | 8.192 |
 | 768 | 1 | 5/8 | 20.487066s | 6.144 |
 | 768 | 2 | 4/8 | 17.733734s | 12.288 |
+
+
+# msmarco-distilbert-base-tas-b with normalized embeddings and dot product score
+| Dimensions | Number of blocks | Tests passed | Doc Embedding generation time | Embedding size kb |
+|------------|------------------|--------------|-------------------------------|-------------------|
+| 128 | 2 | 2/8 | 8.055453s |
+| 128 | 3 | 3/8 | 9.153756s |
+| 128 | 6 | 3/8 | 11.444403s|
+| 256 | 2 | 3/8 | 8.112776s |
+| 256 | 3 | 3/8 | 9.343933s |
+| 256 | 4 | 2/8 | 10.133652s|
+| 384 | 2 | 4/8 | 8.251593s |
+| 384 | 3 | 3/8 | 9.338691s |
+| 512 | 1 | 1/8 | 7.345148s |
+| 512 | 2 | 2/8 | 8.163059s |
+| 768 | 1 | 0/8 | 9.411860s |
+| 768 | 2 | 0/8 | 7.940425s |
 
 
 # msmarco-distilbert-cos-v5 with cosine similarity score
@@ -70,3 +103,19 @@ Dimensions of the embedding is reduced using [🤗 sentence embeddings guide](ht
 | 512 | 2 | 4/8 | 89.615759s  | 8.192 |
 | 768 | 1 | 5/8 | 35.399266s  | 6.144 |
 | 768 | 2 | 4/8 | 36.027875s  | 12.288 |
+
+# multi-qa-mpnet-base-dot-v1 with normalize embeddings and dot product score
+| Dimensions | Number of blocks | Tests passed | Doc Embedding generation time | Embedding size kb |
+|------------|------------------|--------------|-------------------------------|-------------------|
+| 128 | 2 | 4/8 | 17.864524s |
+| 128 | 3 | 3/8 | 18.358778s |
+| 128 | 6 | 4/8 | 23.030969s |
+| 256 | 2 | 5/8 | 16.249754s |
+| 256 | 3 | 4/8 | 18.462553s |
+| 256 | 4 | 4/8 | 20.411926s |
+| 384 | 2 | 5/8 | 17.384333s |
+| 384 | 3 | 4/8 | 19.892100s |
+| 512 | 1 | 4/8 | 49.213740s |
+| 512 | 2 | 4/8 | 51.177401s |
+| 768 | 1 | 4/8 | 18.098792s |
+| 768 | 2 | 4/8 | 16.045600s |

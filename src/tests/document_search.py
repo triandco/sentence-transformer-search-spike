@@ -119,27 +119,27 @@ def tensor_to_score(tensor: torch.Tensor) -> float:
 
 
 def test_embedding_rank(cases, documents, directory_path, verbose=True):
-  base_model_name = 'multi-qa-mpnet-base-dot-v1'
+  base_model_name = 'msmarco-distilbert-base-tas-b'
   model_base = SentenceTransformer('sentence-transformers/%s' % base_model_name)
   model_dot_128 = SentenceTransformer('models/reduced-128/%s' % base_model_name)
   model_dot_256 = SentenceTransformer('models/reduced-256/%s' % base_model_name)
   model_dot_384 = SentenceTransformer('models/reduced-384/%s' % base_model_name)
   model_dot_512 = SentenceTransformer('models/reduced-512/%s' % base_model_name)
   # modelSpecb = SentenceTransformerSpecb("Muennighoff/SGPT-125M-weightedmean-msmarco-specb-bitfit")
-
+  normalise_embeddings = False
   embeddings_strategies = [ 
-    NthBlockCosine(model_base, '%s-768' % base_model_name, 1),
-    NthBlockCosine(model_base, '%s-768' % base_model_name, 2),
-    NthBlockCosine(model_dot_128, '%s-128' % base_model_name, 2),
-    NthBlockCosine(model_dot_128, '%s-128' % base_model_name, 3),
-    NthBlockCosine(model_dot_128, '%s-128' % base_model_name, 6),
-    NthBlockCosine(model_dot_256, '%s-256' % base_model_name, 2),
-    NthBlockCosine(model_dot_256, '%s-256' % base_model_name, 3),
-    NthBlockCosine(model_dot_256, '%s-256' % base_model_name, 4),
-    NthBlockCosine(model_dot_384, '%s-384' % base_model_name, 2),
-    NthBlockCosine(model_dot_384, '%s-384' % base_model_name, 3),
-    NthBlockCosine(model_dot_512, '%s-512' % base_model_name, 1),
-    NthBlockCosine(model_dot_512, '%s-512' % base_model_name, 2),
+    NthBlockCosine(model_base, '%s-768' % base_model_name, 1, normalise_embeddings),
+    NthBlockCosine(model_base, '%s-768' % base_model_name, 2, normalise_embeddings),
+    NthBlockCosine(model_dot_128, '%s-128' % base_model_name, 2, normalise_embeddings),
+    NthBlockCosine(model_dot_128, '%s-128' % base_model_name, 3, normalise_embeddings),
+    NthBlockCosine(model_dot_128, '%s-128' % base_model_name, 6, normalise_embeddings),
+    NthBlockCosine(model_dot_256, '%s-256' % base_model_name, 2, normalise_embeddings),
+    NthBlockCosine(model_dot_256, '%s-256' % base_model_name, 3, normalise_embeddings),
+    NthBlockCosine(model_dot_256, '%s-256' % base_model_name, 4, normalise_embeddings),
+    NthBlockCosine(model_dot_384, '%s-384' % base_model_name, 2, normalise_embeddings),
+    NthBlockCosine(model_dot_384, '%s-384' % base_model_name, 3, normalise_embeddings),
+    NthBlockCosine(model_dot_512, '%s-512' % base_model_name, 1, normalise_embeddings),
+    NthBlockCosine(model_dot_512, '%s-512' % base_model_name, 2, normalise_embeddings),
   ]
 
   for strategy in embeddings_strategies:

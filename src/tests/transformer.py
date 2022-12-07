@@ -78,12 +78,34 @@ def verify_encode_max_sequence_length_behaviour(model):
   expect(not numpy.array_equal(batch[0], batch[1]), 'Expected first item not equal to second item in batch')
   
 
+def verify_normalization_behaviour(model:SentenceTransformer):
+  content = "What type of cat is suitable for cold climate?"
+  embedding = model.encode([content])
+  embedding_normalize = model.encode([content], normalize_embeddings=True)
+ 
+  documents = [
+    'The house cat enjoy favourable living space where temperature is more constant. This means the evolve to enjoy more moderate climate.',
+    'The dessert cat adapted to the hot climate and generally very short fur. There short fur also means that you do not have to clean up as often.',
+    'The artic cat has very long fur and more body fat than any other type of cat. This means that they can live in colder area of the earth.'
+  ]
+
+  document_embeddings_standard = model.encode(documents)
+  document_embeddings_normalized = model.encode(documents)
+
+  standard_score = [ util.dot_score(embedding, doc_embedding) for doc_embedding in document_embeddings_standard]
+  normalize_score = [ util.dot_score(embedding_normalize, doc_embedding) for doc_embedding in document_embeddings_normalized]
+
+  print("standard score", standard_score)
+  print("normalised score", normalize_score)
+
+  expect(len(embedding) == 1, "Expect embedding is 1. Receive %d" % len(embedding))
+
 if __name__ == '__main__':
   model = SentenceTransformer('msmarco-distilbert-base-tas-b')
-  mmodelSpecb = SentenceTransformerSpecb("Muennighoff/SGPT-125M-weightedmean-msmarco-specb-bitfit")
   # verify_encode_max_sequence_length_behaviour(model)
-  print('Distilled Bert')
-  verify_encode_batch_tensor_equality(model)
-  print('SGPT')
-  verify_encode_batch_tensor_equality(mmodelSpecb)
+  # print('Distilled Bert')
+  # verify_encode_batch_tensor_equality(model)
+  # print('SGPT')
+  # verify_encode_batch_tensor_equality(mmodelSpecb)
   # verify_encode_batch_dot_product(model)
+  verify_normalization_behaviour(model)

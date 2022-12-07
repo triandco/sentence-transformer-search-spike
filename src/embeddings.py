@@ -123,9 +123,10 @@ class WholeDocument(ParagraphChunk, DotProductScore, AbstractEmbeddingStrategy, 
 
 
 class NthBlock(NthChunk, AbstractEmbeddingStrategy, AbstractDocumentEncoder):
-  def __init__(self, model: SentenceTransformer, model_name:str, count: int):
+  def __init__(self, model: SentenceTransformer, model_name:str, count: int, normalize_embeddings=False):
     super().__init__(model, model_name)
     self.count = count
+    self.normalize_embedding = normalize_embeddings
 
   def document(self, document: str) -> 'list[torch.Tensor]':
     chunks = NthBlock.chunk(document, self.count)
@@ -133,7 +134,7 @@ class NthBlock(NthChunk, AbstractEmbeddingStrategy, AbstractDocumentEncoder):
     tensors = []
     for chunk in chunks:
       paragraphs = chunk.split("\n")
-      embeddings = self.model.encode(paragraphs)
+      embeddings = self.model.encode(paragraphs, normalize_embeddings=self.normalize_embedding)
       mean = numpy.mean(embeddings, axis=0)
       amax = numpy.amax(embeddings, axis=0)
       concatted = numpy.concatenate([mean, amax])
@@ -143,7 +144,7 @@ class NthBlock(NthChunk, AbstractEmbeddingStrategy, AbstractDocumentEncoder):
     return tensors
 
   def query(self, query: str) -> torch.Tensor:
-    embedding = self.model.encode(query)
+    embedding = self.model.encode(query, normalize_embeddings=self.normalize_embedding)
     concatted = numpy.concatenate([embedding, embedding])
     return torch.tensor(concatted, device='cuda:0')
 
