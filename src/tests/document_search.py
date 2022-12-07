@@ -5,40 +5,41 @@ from ..sentence_transformer import SentenceTransformerSpecb
 import torch
 from sentence_transformers import SentenceTransformer
 from rank_bm25 import BM25L, BM25Plus
+import sys
 from time import perf_counter
 
-sam_harris_podcast_test_cases: 'list[TestCase]' = [
+making_sense_test_cases: 'list[TestCase]' = [
   {
     'query':'Sam talks about a scale of suffering to flourishing. His guest has seems to evaluate things from suffering to zero, Sam Harris seems to evaluate things from suffering to zero to flourishing.',
-    'expect': ''
+    'expect': 'Making_Sense_107_Is_Life_Actually_Worth_Living_Full_7-6-22'
   },
   {
     'query':'His guest has seems to evaluate things from suffering to zero, Sam Harris seems to evaluate things from suffering to zero to flourishing.',
-    'expect': ''
+    'expect': 'Making_Sense_107_Is_Life_Actually_Worth_Living_Full_7-6-22'
   },
   {
     'query':'Oh yeah, this reminds me of some Sammy podcast where he speaks to someone who has the view that life is a scale like: -1 —— 0 as in theres suffering or there’s not. Where as Sammy was viewing more like: -1 —— 0 —— +1 where there’s flourishing to be had.',
-    'expect': ''
+    'expect': 'Making_Sense_107_Is_Life_Actually_Worth_Living_Full_7-6-22'
   },
   {
     'query':'suffering scale',
-    'expect': ''
+    'expect': 'Making_Sense_107_Is_Life_Actually_Worth_Living_Full_7-6-22'
   },
   {
     'query':'Sam Harris suffering scale',
-    'expect': ''
+    'expect': 'Making_Sense_107_Is_Life_Actually_Worth_Living_Full_7-6-22'
   },
   {
     'query':'suffering flourishing scale',
-    'expect': ''
+    'expect': 'Making_Sense_107_Is_Life_Actually_Worth_Living_Full_7-6-22'
   },
   {
     'query':'guest evaluates things from suffering to zero, Sam evaluates things from suffering to zero to flourishing',
-    'expect': ''
+    'expect': 'Making_Sense_107_Is_Life_Actually_Worth_Living_Full_7-6-22'
   },
   {
     'query':'suffering to zero to flourishing',
-    'expect': ''
+    'expect': 'Making_Sense_107_Is_Life_Actually_Worth_Living_Full_7-6-22'
   }
 ]
 
@@ -101,11 +102,14 @@ def embeddings_rank(test_cases: 'list[TestCase]', documents: 'list[tuple[str, st
 def bm25_rank(test_cases: 'list[TestCase]', documents: 'list[tuple[str,str]]', strategy):
   titles, docs = unzip(documents)
   bm25l = strategy([document.split(' ') for document in docs])
-  
+  size = sys.getsizeof(bm25l.corpus_size) + sys.getsizeof(bm25l.doc_freqs) + sys.getsizeof(bm25l.idf)
+  print("total size of indexed corpus %f " %  size /1000)
   outcome: 'list[RankResult]' = []
   for c in test_cases:
     query = c['query'].split()
     scores = bm25l.get_scores(query)
+    
+    
     outcome.append({
       'case': c,
       'result': sorted(list(zip(titles, scores)), key=lambda x:x[1], reverse=True)
@@ -119,27 +123,16 @@ def tensor_to_score(tensor: torch.Tensor) -> float:
 
 
 def test_embedding_rank(cases, documents, directory_path, verbose=True):
-  base_model_name = 'msmarco-distilbert-base-tas-b'
+  base_model_name = 'multi-qa-mpnet-base-dot-v1'
   model_base = SentenceTransformer('sentence-transformers/%s' % base_model_name)
   model_dot_128 = SentenceTransformer('models/reduced-128/%s' % base_model_name)
   model_dot_256 = SentenceTransformer('models/reduced-256/%s' % base_model_name)
-  model_dot_384 = SentenceTransformer('models/reduced-384/%s' % base_model_name)
-  model_dot_512 = SentenceTransformer('models/reduced-512/%s' % base_model_name)
-  # modelSpecb = SentenceTransformerSpecb("Muennighoff/SGPT-125M-weightedmean-msmarco-specb-bitfit")
-  normalise_embeddings = False
+
+  normalise_embeddings = True
   embeddings_strategies = [ 
-    NthBlockCosine(model_base, '%s-768' % base_model_name, 1, normalise_embeddings),
-    NthBlockCosine(model_base, '%s-768' % base_model_name, 2, normalise_embeddings),
-    NthBlockCosine(model_dot_128, '%s-128' % base_model_name, 2, normalise_embeddings),
-    NthBlockCosine(model_dot_128, '%s-128' % base_model_name, 3, normalise_embeddings),
-    NthBlockCosine(model_dot_128, '%s-128' % base_model_name, 6, normalise_embeddings),
-    NthBlockCosine(model_dot_256, '%s-256' % base_model_name, 2, normalise_embeddings),
-    NthBlockCosine(model_dot_256, '%s-256' % base_model_name, 3, normalise_embeddings),
-    NthBlockCosine(model_dot_256, '%s-256' % base_model_name, 4, normalise_embeddings),
-    NthBlockCosine(model_dot_384, '%s-384' % base_model_name, 2, normalise_embeddings),
-    NthBlockCosine(model_dot_384, '%s-384' % base_model_name, 3, normalise_embeddings),
-    NthBlockCosine(model_dot_512, '%s-512' % base_model_name, 1, normalise_embeddings),
-    NthBlockCosine(model_dot_512, '%s-512' % base_model_name, 2, normalise_embeddings),
+    NthBlockDot(model_base, '%s-768' % base_model_name, 1, normalise_embeddings),
+    NthBlockDot(model_dot_128, '%s-128' % base_model_name, 3, normalise_embeddings),
+    NthBlockDot(model_dot_256, '%s-256' % base_model_name, 2, normalise_embeddings),
   ]
 
   for strategy in embeddings_strategies:
@@ -183,11 +176,12 @@ def run_test(cases, directory_path):
   files = get_files(directory_path)
   documents = list(zip(files, list(map(get_content, files))))
 
-  # test_bm25_rank(cases, documents, directory_path)
-  test_embedding_rank(cases, documents, directory_path, False)  
+  test_bm25_rank(cases, documents, directory_path)
+  # test_embedding_rank(cases, documents, directory_path, True)  
 
 
 if __name__=='__main__':
   run_test(not_boring_podcast_test_cases,'doc/not-boring-podcast')
+  # run_test(making_sense_test_cases,'doc/making-sense')
   
   

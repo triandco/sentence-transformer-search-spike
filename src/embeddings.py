@@ -121,7 +121,7 @@ class WholeDocument(ParagraphChunk, DotProductScore, AbstractEmbeddingStrategy, 
     # unit = concatted / (concatted**2).sum()**0.5
     return torch.tensor(concatted, device='cuda:0')
 
-
+# This strategy relies on the assumption that a paragraph commonly has less than 512 words. Longer sequence will be automatically truncated.
 class NthBlock(NthChunk, AbstractEmbeddingStrategy, AbstractDocumentEncoder):
   def __init__(self, model: SentenceTransformer, model_name:str, count: int, normalize_embeddings=False):
     super().__init__(model, model_name)
@@ -133,8 +133,9 @@ class NthBlock(NthChunk, AbstractEmbeddingStrategy, AbstractDocumentEncoder):
     
     tensors = []
     for chunk in chunks:
-      paragraphs = chunk.split("\n")
-      embeddings = self.model.encode(paragraphs, normalize_embeddings=self.normalize_embedding)
+      # prioritise chunking by paragraph as it gives better result.
+      para_or_sentences = chunk.split("\n") if "\n" in chunk else chunk.split('.')
+      embeddings = self.model.encode(para_or_sentences, normalize_embeddings=self.normalize_embedding)
       mean = numpy.mean(embeddings, axis=0)
       amax = numpy.amax(embeddings, axis=0)
       concatted = numpy.concatenate([mean, amax])

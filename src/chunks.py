@@ -24,11 +24,18 @@ class Chunkless:
     return [document]
 
 
-class NthChunk:
+class NthParagraphChunk:
   @staticmethod
   def chunk(document:str, count:int) -> 'list[str]':
     paragraphs = ParagraphChunk.chunk(document)
     steps = math.ceil(len(paragraphs) / count)
     return ["\n".join(paragraphs[i:i + steps]) for i in range(0, len(paragraphs), steps)]
 
+
+class NthChunk:
+  @staticmethod
+  def chunk(document:str, count:int) -> 'list[str]':
+    chunks = ParagraphChunk.chunk(document) if '\n' in document else SentenceChunk.chunk(document)
+    steps = math.ceil(len(chunks) / count)
+    return ["\n".join(chunks[i:i + steps]) for i in range(0, len(chunks), steps)]
 
