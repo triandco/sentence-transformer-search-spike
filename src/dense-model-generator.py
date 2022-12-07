@@ -77,11 +77,9 @@ def reduce_dimension(model_name, new_dimension=128):
 
 if __name__=='__main__':
     model_names = [
-        'msmarco-distilbert-base-tas-b', 
-        'sentence-transformers/msmarco-distilbert-cos-v5', 
-        'sentence-transformers/msmarco-bert-base-dot-v5'
+        'sentence-transformers/multi-qa-mpnet-base-dot-v1', 
     ] 
-    varieties = [ 512 ]
+    varieties = [ 128, 256, 384, 512 ]
     for variety in varieties:
       outcome = [ reduce_dimension(model, variety) for model in model_names]
     
